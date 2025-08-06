@@ -1,0 +1,21 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+
+# OS metadata files
+.DS_Store
+
+# Python distribution artifacts
+*.egg-info/
+*.egg
+*.whl
+dist/
+build/
+
+# Jupyter notebook checkpoints (if ever used)
+.ipynb_checkpoints/
+
