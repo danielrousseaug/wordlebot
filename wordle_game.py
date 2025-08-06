@@ -20,6 +20,7 @@ def choose_random_word(words):
     Choose a random word from the provided list.
     """
     return random.choice(words)
+ 
 
 def check_guess(guess, answer):
     """
@@ -52,3 +53,43 @@ def check_guess(guess, answer):
             answer_chars[answer_chars.index(letter)] = None
 
     return statuses
+ 
+def auto_solve(answer, words, max_attempts=6):
+    """
+    Automatically solve the Wordle puzzle for the given answer.
+    Returns the number of attempts taken to guess the answer,
+    or None if it fails within max_attempts.
+    """
+    guesses = []
+    statuses_list = []
+    possible = list(words)
+    for attempt in range(1, max_attempts + 1):
+        # filter possible candidates based on previous feedback
+        possible = [
+            w for w in possible
+            if all(check_guess(g, w) == st for g, st in zip(guesses, statuses_list))
+        ]
+        # compute letter-position frequency table
+        freq = {ch: [0] * 5 for ch in 'abcdefghijklmnopqrstuvwxyz'}
+        for w in possible:
+            for i, ch in enumerate(w):
+                freq[ch][i] += 1
+        # score candidates and pick the highest scoring guess
+        best_guess = None
+        best_score = -1
+        for w in possible:
+            if w in guesses:
+                continue
+            score = sum(freq[ch][i] for i, ch in enumerate(w))
+            if score > best_score:
+                best_score = score
+                best_guess = w
+        if not best_guess:
+            return None
+        guess = best_guess
+        statuses = check_guess(guess, answer)
+        guesses.append(guess)
+        statuses_list.append(statuses)
+        if guess == answer:
+            return attempt
+    return None

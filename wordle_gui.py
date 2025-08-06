@@ -10,12 +10,27 @@ except ImportError:
     print("Error: tkinter is required to run the GUI. Please install the tkinter package.")
     sys.exit(1)
 from wordle_game import load_word_list, choose_random_word, check_guess
+import tkinter.ttk as ttk
+
+# Theme colors (Wordle-inspired dark mode)
+BG_COLOR = "#121213"
+EMPTY_BG = "#3a3a3c"
+ABSENT_BG = "#787c7e"
+PRESENT_BG = "#c9b458"
+CORRECT_BG = "#6aaa64"
+TEXT_COLOR = "#ffffff"
+BUTTON_BG = "#565758"
+BUTTON_FG = "#ffffff"
+DELAY_MS = 800  # milliseconds between auto-solver steps
 
 class WordleGUI(tk.Tk):
     def __init__(self):
         super().__init__()
+        # set dark background
+        self.configure(bg=BG_COLOR)
         self.title("Wordle Clone")
         self.resizable(False, False)
+        # load word list and choose answer
         self.words = load_word_list()
         self.answer = choose_random_word(self.words)
         self.current_row = 0
@@ -27,30 +42,86 @@ class WordleGUI(tk.Tk):
         self._setup_ui()
 
     def _setup_ui(self):
-        font = tkfont.Font(family="Helvetica", size=32, weight="bold")
+        # prepare fonts
+        grid_font = tkfont.Font(family="Helvetica", size=32, weight="bold")
+        entry_font = tkfont.Font(family="Helvetica", size=16)
+
+        # grid frame for letter cells
+        self.grid_frame = tk.Frame(self, bg=BG_COLOR)
+        self.grid_frame.grid(row=0, column=0, padx=10, pady=10)
         for row in range(self.max_attempts):
             row_labels = []
             for col in range(5):
-                lbl = tk.Label(self, text=' ', width=4, height=2, font=font,
-                               borderwidth=2, relief="solid", bg="lightgray")
-                lbl.grid(row=row, column=col, padx=5, pady=5)
+                lbl = tk.Label(
+                    self.grid_frame,
+                    text='', font=grid_font,
+                    width=4, height=2,
+                    bg=EMPTY_BG, fg=TEXT_COLOR
+                )
+                lbl.grid(row=row, column=col, padx=3, pady=3)
                 row_labels.append(lbl)
             self.grid_labels.append(row_labels)
 
-        self.entry = tk.Entry(self, font=font, justify="center")
-        self.entry.grid(row=self.max_attempts, column=0, columnspan=4, padx=5, pady=5)
+        # control frame for entry and buttons
+        self.control_frame = tk.Frame(self, bg=BG_COLOR)
+        self.control_frame.grid(row=1, column=0, pady=(0,10))
+        # configure ttk button style for dark theme
+        style = ttk.Style(self)
+        if 'clam' in style.theme_names():
+            style.theme_use('clam')
+        style.configure(
+            'Wordle.TButton',
+            background=BUTTON_BG,
+            foreground=BUTTON_FG,
+            borderwidth=0,
+            focusthickness=0,
+            highlightthickness=0,
+            padding=6,
+        )
+        style.map(
+            'Wordle.TButton',
+            background=[('active', BUTTON_BG)],
+            foreground=[('active', BUTTON_FG)],
+        )
+
+        self.entry = tk.Entry(
+            self.control_frame,
+            font=grid_font, justify="center",
+            bg=BG_COLOR, fg=TEXT_COLOR,
+            insertbackground=TEXT_COLOR,
+            width=6, borderwidth=2, relief="flat"
+        )
+        self.entry.grid(row=0, column=0, padx=(0,10))
         self.entry.focus()
 
-        self.submit_btn = tk.Button(self, text="Guess", command=self.submit_guess)
-        self.submit_btn.grid(row=self.max_attempts, column=4, padx=5, pady=5)
-        # button to trigger automatic solver
-        self.auto_btn = tk.Button(self, text="Auto Solve", command=self.auto_solve)
-        self.auto_btn.grid(row=self.max_attempts, column=5, padx=5, pady=5)
+        # Guess button with custom ttk style
+        self.submit_btn = ttk.Button(
+            self.control_frame,
+            text="Guess",
+            command=self.submit_guess,
+            style="Wordle.TButton",
+            width=8,
+        )
+        self.submit_btn.grid(row=0, column=1, padx=5)
 
-        self.message = tk.Label(self, text='', font=("Helvetica", 14))
-        # span across submit and auto-solve buttons as well
-        self.message.grid(row=self.max_attempts+1, column=0, columnspan=6, padx=5, pady=5)
+        # Auto Solve button with custom ttk style
+        self.auto_btn = ttk.Button(
+            self.control_frame,
+            text="Auto Solve",
+            command=self.auto_solve,
+            style="Wordle.TButton",
+            width=10,
+        )
+        self.auto_btn.grid(row=0, column=2, padx=5)
 
+        # status message label
+        self.message = tk.Label(
+            self, text='', font=entry_font,
+            bg=BG_COLOR, fg=TEXT_COLOR
+        )
+        self.message.grid(row=2, column=0)
+
+        # bind Enter key to guess submission
         self.bind('<Return>', lambda event: self.submit_guess())
 
     def submit_guess(self):
@@ -65,27 +136,29 @@ class WordleGUI(tk.Tk):
         self.guesses.append(guess)
         self.statuses_list.append(statuses)
 
+        # update grid cell colors
         for col, (letter, status) in enumerate(zip(guess.upper(), statuses)):
             lbl = self.grid_labels[self.current_row][col]
             lbl.config(text=letter)
             if status == 'correct':
-                lbl.config(bg='green', fg='white')
+                color = CORRECT_BG
             elif status == 'present':
-                lbl.config(bg='yellow', fg='black')
+                color = PRESENT_BG
             else:
-                lbl.config(bg='gray', fg='white')
+                color = ABSENT_BG
+            lbl.config(bg=color, fg=TEXT_COLOR)
 
         self.current_row += 1
         self.entry.delete(0, tk.END)
         self.message.config(text='')
 
         if guess == self.answer:
-            self.message.config(text=f'You win! The word was {self.answer.upper()}.', fg='green')
+            self.message.config(text=f'You win! The word was {self.answer.upper()}.', fg=CORRECT_BG)
             self.entry.config(state='disabled')
             self.submit_btn.config(state='disabled')
             self.auto_btn.config(state='disabled')
         elif self.current_row >= self.max_attempts:
-            self.message.config(text=f'Game Over! The word was {self.answer.upper()}.', fg='red')
+            self.message.config(text=f'Game Over! The word was {self.answer.upper()}.', fg=ABSENT_BG)
             self.entry.config(state='disabled')
             self.submit_btn.config(state='disabled')
             self.auto_btn.config(state='disabled')
@@ -99,57 +172,72 @@ class WordleGUI(tk.Tk):
         self.entry.config(state='disabled')
         self.submit_btn.config(state='disabled')
         self.auto_btn.config(state='disabled')
-        # initialize candidate list based on past feedback
-        possible = [w for w in self.words
-                    if all(check_guess(g, w) == st for g, st in zip(self.guesses, self.statuses_list))]
-        # solver loop
-        while self.current_row < self.max_attempts:
-            # compute letter-position frequencies
-            freq = {ch: [0] * 5 for ch in 'abcdefghijklmnopqrstuvwxyz'}
-            for w in possible:
-                for i, ch in enumerate(w):
-                    freq[ch][i] += 1
-            # score candidates
-            scored = []
-            for w in possible:
-                if w in self.guesses:
-                    continue
-                score = sum(freq[ch][i] for i, ch in enumerate(w))
-                scored.append((score, w))
-            if not scored:
-                break
-            scored.sort(reverse=True)
-            guess = scored[0][1]
-            statuses = check_guess(guess, self.answer)
-            # display the guess in the UI
-            for col, (letter, status) in enumerate(zip(guess.upper(), statuses)):
-                lbl = self.grid_labels[self.current_row][col]
-                lbl.config(text=letter)
-                if status == 'correct':
-                    lbl.config(bg='green', fg='white')
-                elif status == 'present':
-                    lbl.config(bg='yellow', fg='black')
-                else:
-                    lbl.config(bg='gray', fg='white')
-            # record and advance
-            self.guesses.append(guess)
-            self.statuses_list.append(statuses)
-            self.current_row += 1
-            self.update()
-            # check for success
-            if guess == self.answer:
-                self.message.config(
-                    text=f'Auto solver: solved in {self.current_row} attempts. The word was {self.answer.upper()}.',
-                    fg='green')
-                return
-            # filter for next round
-            possible = [w for w in possible
-                        if all(check_guess(g, w) == st for g, st in zip(self.guesses, self.statuses_list))]
-        # end solver loop
+        # prepare candidates from solution list matching past feedback
+        # prepare candidates matching past feedback
+        self.solver_candidates = [
+            w for w in self.words
+            if all(check_guess(g, w) == st for g, st in zip(self.guesses, self.statuses_list))
+        ]
+        # start iterative solver with delay
+        self.after(DELAY_MS, self._auto_step)
+
+    def _auto_step(self):
+        # stop if no attempts remain
         if self.current_row >= self.max_attempts:
-            self.message.config(text=f'Auto solver: failed. The word was {self.answer.upper()}.', fg='red')
-        else:
-            self.message.config(text='Auto solver: no candidates remain.', fg='red')
+            self.message.config(
+                text=f'Auto solver: failed. The word was {self.answer.upper()}.',
+                fg=ABSENT_BG
+            )
+            return
+        possible = self.solver_candidates
+        # compute position-frequency table
+        freq = {ch: [0] * 5 for ch in 'abcdefghijklmnopqrstuvwxyz'}
+        for w in possible:
+            for i, ch in enumerate(w):
+                freq[ch][i] += 1
+        # score and select best candidate
+        scored = []
+        for w in possible:
+            if w in self.guesses:
+                continue
+            score = sum(freq[ch][i] for i, ch in enumerate(w))
+            scored.append((score, w))
+        if not scored:
+            self.message.config(text='Auto solver: no candidates remain.', fg=ABSENT_BG)
+            return
+        scored.sort(reverse=True)
+        guess = scored[0][1]
+        statuses = check_guess(guess, self.answer)
+        # display guess
+        for col, (letter, status) in enumerate(zip(guess.upper(), statuses)):
+            lbl = self.grid_labels[self.current_row][col]
+            lbl.config(text=letter)
+            if status == 'correct':
+                color = CORRECT_BG
+            elif status == 'present':
+                color = PRESENT_BG
+            else:
+                color = ABSENT_BG
+            lbl.config(bg=color, fg=TEXT_COLOR)
+        # record and advance
+        self.guesses.append(guess)
+        self.statuses_list.append(statuses)
+        self.current_row += 1
+        # refresh UI
+        self.update_idletasks()
+        # check success
+        if guess == self.answer:
+            self.message.config(
+                text=f'Auto solver: solved in {self.current_row} attempts. The word was {self.answer.upper()}.',
+                fg=CORRECT_BG
+            )
+            return
+        # filter candidates and schedule next step
+        self.solver_candidates = [
+            w for w in possible
+            if all(check_guess(g, w) == st for g, st in zip(self.guesses, self.statuses_list))
+        ]
+        self.after(DELAY_MS, self._auto_step)
 
 def main():
     app = WordleGUI()

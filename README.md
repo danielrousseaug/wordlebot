@@ -21,6 +21,23 @@ Run the command-line version:
 python3 wordle_cli.py
 ```
 
+### CLI Benchmark Mode
+
+The CLI supports an auto solver benchmark to evaluate solver performance over multiple games.
+
+Run the benchmark with:
+```bash
+python3 wordle_cli.py --benchmark
+```
+Use `-t N` or `--trials N` to specify the number of random games (default: 100), for example:
+```bash
+python3 wordle_cli.py --benchmark --trials 500
+```
+The output summarizes:
+- Number of games solved vs. failed
+- Average number of guesses for solved games
+- Best (fewest guesses) and worst (most guesses) among solved games
+
 ### GUI Version
 Run the graphical version:
 ```bash
