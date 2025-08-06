@@ -1,19 +1,12 @@
-# Wordle Clone
+# Wordle Implementation with Solver
 
-This is a clone of the Wordle game with both command-line (CLI) and graphical (GUI) interfaces.
+This is a TKInter implementation of Worlde with an automatic solver. I've experimented with different solving techniques to reduce inference cost and this is the best I've managed.
 
 ## Requirements
-- Python 3.x
-- tkinter (for GUI version)
+- Python 3.x w/ tkinter
 
 ## Word List
 The `wordlist.txt` file contains valid 5-letter words (one per line). You can extend or replace it as desired.
-
-## Usage
-First, change into the `wordle` directory:
-```bash
-cd wordle
-```
 
 ### CLI Version
 Run the command-line version:
@@ -21,9 +14,9 @@ Run the command-line version:
 python3 wordle_cli.py
 ```
 
-### CLI Benchmark Mode
+### Benchmark 
 
-The CLI supports an auto solver benchmark to evaluate solver performance over multiple games.
+The CLI has benchmark to evaluate solver performance over multiple games.
 
 Run the benchmark with:
 ```bash
@@ -33,10 +26,6 @@ Use `-t N` or `--trials N` to specify the number of random games (default: 100),
 ```bash
 python3 wordle_cli.py --benchmark --trials 500
 ```
-The output summarizes:
-- Number of games solved vs. failed
-- Average number of guesses for solved games
-- Best (fewest guesses) and worst (most guesses) among solved games
 
 ### GUI Version
 Run the graphical version:
@@ -45,7 +34,7 @@ python3 wordle_gui.py
 ```
  
 ### Auto Solver (GUI)
-In the graphical version, click the **Auto Solve** button to have the game solve the current puzzle automatically. The solver uses a simple letter-position frequency heuristic:
+In the graphical version, click the **Auto Solve** button to have the game solve the current puzzle automatically. The solver uses a  letter-position frequency heuristic:
 
 - Maintains a list of possible candidate words consistent with all previous guesses and their feedback (correct, present, absent).
 - For each candidate word, computes a score by summing the frequencies of its letters at their respective positions among the current candidate list.
