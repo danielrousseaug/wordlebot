@@ -2,6 +2,8 @@
 
 This is a TKInter implementation of Worlde with an automatic solver. I've experimented with different solving techniques to reduce inference cost and this is the best I've managed.
 
+<img width="562" height="822" alt="Game Image" src="https://github.com/user-attachments/assets/c5e43e82-c688-478a-b08d-72c012dad074" />
+
 ## Requirements
 - Python 3.x w/ tkinter
 
