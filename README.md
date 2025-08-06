@@ -26,3 +26,13 @@ Run the graphical version:
 ```bash
 python3 wordle_gui.py
 ```
+ 
+### Auto Solver (GUI)
+In the graphical version, click the **Auto Solve** button to have the game solve the current puzzle automatically. The solver uses a simple letter-position frequency heuristic:
+
+- Maintains a list of possible candidate words consistent with all previous guesses and their feedback (correct, present, absent).
+- For each candidate word, computes a score by summing the frequencies of its letters at their respective positions among the current candidate list.
+- Selects the highest-scoring word as the next guess, applies it, receives feedback, and filters the candidate list accordingly.
+- Repeats this process until the puzzle is solved or the maximum number of attempts is reached.
+
+The Auto Solver can be invoked at any point (even mid-game) and will respect any manual guesses already entered.
